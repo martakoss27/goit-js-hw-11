@@ -4,7 +4,7 @@ import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 
 const searchFormEl = document.querySelector('.search-form');
-const submitEl = document.querySelector('.search-form input');
+const inputEl = document.querySelector('.search-form input');
 const startButton = document.querySelector('.search-form button');
 const buttonLoadMoreEl = document.querySelector('.load-more');
 let galleryEl = document.querySelector('.gallery');
@@ -40,11 +40,11 @@ async function fetchImg(value) {
     if (pageCounter === 1) {
       Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`);
       buttonLoadMoreEl.style.visibility = 'visible';
-      renderImgCard(response.data.hits);
+      renderImgPost(response.data.hits);
     }
     if (pageCounter > 1) {
       buttonLoadMoreEl.style.visibility = 'visible';
-      renderImgCard(response.data.hits);
+      renderImgPost(response.data.hits);
     }
     if (pagesCount === pageCounter) {
       buttonLoadMoreEl.style.visibility = 'hidden';
@@ -56,4 +56,64 @@ async function fetchImg(value) {
   } catch (error) {
     Notiflix.Notify.failure(`Failed to fetch breeds: ${error}`);
   }
+}
+inputEl.addEventListener('input', event => {
+  const inputValue = event.currentTarget.value.trim();
+  if (inputValue.length === 0) {
+    startButton.disabled = true;
+  } else if (inputValue.length > 0) {
+    startButton.disabled = false;
+  }
+  return;
+});
+
+searchFormEl.addEventListener('submit', requestValue);
+let lightbox = new SimpleLightbox('.gallery a', {
+  captionDelay: 100,
+  captionData: 'alt',
+});
+
+function clearGallery() {
+  galleryEl.innerHTML = '';
+}
+
+function requestValue(event) {
+  event.preventDefault();
+  pageCounter = 1;
+  clearGallery();
+  let requestId = inputEl.value.trim();
+  fetchImg(requestId);
+  lightbox.refresh();
+  return;
+}
+buttonLoadMoreEl.addEventListener('click', () => {
+  pageCounter += 1;
+  fetchImg(submitEl.value);
+  lightbox.refresh();
+  return;
+});
+function renderImgPost(response) {
+  let listArray = response.map(resp => {
+    return `<a href='${resp.largeImageURL}' class='gallery__link'> 
+      <img src="${resp.webformatURL}" alt="${resp.tags}" loading="lazy" />
+      <div class="info">
+        <p class="info-item">
+          <b>Likes: ${resp.likes}</b>
+        </p>
+        <p class="info-item">
+          <b>Views: ${resp.views}</b>
+        </p>
+        <p class="info-item">
+          <b>Comments: ${resp.comments}</b>
+        </p>
+        <p class="info-item">
+          <b>Downloads: ${resp.downloads}</b>
+        </p>
+      </div>
+    </a>`;
+  });
+
+  galleryEl.insertAdjacentHTML('beforeend', listArray.join(''));
+  lightbox.refresh();
+  return;
 }
