@@ -88,7 +88,7 @@ function requestValue(event) {
 }
 buttonLoadMoreEl.addEventListener('click', () => {
   pageCounter += 1;
-  fetchImg(submitEl.value);
+  fetchImg(inputEl.value);
   lightbox.refresh();
   return;
 });
